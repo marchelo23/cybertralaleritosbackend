@@ -1,0 +1,28 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "investor@test.com",
+      "type": "investor",
+      "balance": 4970.0,
+      "rate": 3.6
+    },
+    {
+      "id": 2,
+      "email": "borrower@test.com",
+      "type": "borrower",
+      "credit_limit": 60,
+      "successful_payments": 1
+    }
+  ],
+  "loans": [
+    {
+      "id": 1,
+      "borrower_id": 2,
+      "investor_id": 1,
+      "amount": 30.0,
+      "status": "paid"
+    }
+  ],
+  "next_loan_id": 2
+}
