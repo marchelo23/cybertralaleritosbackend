@@ -17,6 +17,17 @@ VUDY_API_URL = os.environ.get("VUDY_API_URL", "").rstrip("/")
 KYC_REQUIRED_FOR_LOAN = os.environ.get("KYC_REQUIRED", "0") == "1"
 
 
+@app.route("/", methods=["GET"])
+def index():
+    return jsonify({"message": "Cybertralaleritos API", "docs": "POST /login, GET /user/<id>, POST /request_loan, POST /pay_loan, POST /kyc/verify, POST /vudy/deposit, POST /vudy/withdraw"})
+
+
+@app.route("/healthz", methods=["GET"])
+def healthz():
+    """Health check para Render (Health Check Path: /healthz)."""
+    return jsonify({"status": "ok"})
+
+
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json() or {}
