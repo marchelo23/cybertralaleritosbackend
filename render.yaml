@@ -1,0 +1,14 @@
+# Render Blueprint (opcional). Configuración también desde el dashboard.
+services:
+  - type: web
+    name: cybertralaleritos-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn wsgi:app
+    envVars:
+      - key: VUDY
+        sync: false
+      - key: VUDY_API_URL
+        sync: false
+      - key: KYC_REQUIRED
+        value: "0"

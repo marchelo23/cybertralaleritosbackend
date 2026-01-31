@@ -7,7 +7,7 @@ DATA_FILE = "data.json"
 DUMMY = {
     "users": [
         {"id": 1, "email": "investor@test.com", "type": "investor", "balance": 5000, "rate": 3.6},
-        {"id": 2, "email": "borrower@test.com", "type": "borrower", "credit_limit": 40, "successful_payments": 0},
+        {"id": 2, "email": "borrower@test.com", "type": "borrower", "credit_limit": 40, "successful_payments": 0, "kyc_verified": False},
     ],
     "loans": [],
     "next_loan_id": 1,
