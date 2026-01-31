@@ -153,6 +153,89 @@ def kyc_verify():
     return jsonify({"ok": True, "message": "KYC verified", "user": user})
 
 
+def _vudy_request(method, path, json_body=None):
+    """Llama a la API Vudy. Devuelve (ok, data o error_msg)."""
+    if not VUDY_API_KEY:
+        return False, "VUDY not configured"
+    if not VUDY_API_URL:
+        return False, "VUDY_API_URL not configured"
+    try:
+        import requests
+        url = f"{VUDY_API_URL.rstrip('/')}{path}"
+        r = requests.request(
+            method,
+            url,
+            headers={"Authorization": f"Bearer {VUDY_API_KEY}", "Content-Type": "application/json"},
+            json=json_body,
+            timeout=15,
+        )
+        if r.status_code in (200, 201):
+            return True, r.json() if r.content else {}
+        return False, r.text or f"HTTP {r.status_code}"
+    except Exception as e:
+        return False, str(e)
+
+
+@app.route("/vudy/deposit", methods=["POST"])
+def vudy_deposit():
+    """Guardar pisto en Vudy: envía amount desde el usuario a Vudy."""
+    data = request.get_json() or {}
+    user_id = data.get("user_id")
+    amount = data.get("amount")
+    if user_id is None or amount is None:
+        return jsonify({"error": "user_id and amount required"}), 400
+    try:
+        amount = float(amount)
+    except (TypeError, ValueError):
+        return jsonify({"error": "amount must be a number"}), 400
+    if amount <= 0:
+        return jsonify({"error": "amount must be positive"}), 400
+    user = db.get_user_by_id(user_id)
+    if not user:
+        return jsonify({"error": "user not found"}), 404
+    balance = user.get("balance", 0)
+    if balance < amount:
+        return jsonify({"error": "insufficient balance", "balance": balance}), 400
+    if VUDY_API_URL:
+        ok, result = _vudy_request("POST", "/deposit", {"user_id": user_id, "amount": amount})
+        if not ok:
+            return jsonify({"error": "Vudy deposit failed", "detail": result}), 502
+    user["balance"] = balance - amount
+    user["vudy_balance"] = user.get("vudy_balance", 0) + amount
+    db.save_user(user)
+    return jsonify({"ok": True, "message": "deposit sent to Vudy", "user": user})
+
+
+@app.route("/vudy/withdraw", methods=["POST"])
+def vudy_withdraw():
+    """Jalar pisto desde Vudy: trae amount desde Vudy al usuario."""
+    data = request.get_json() or {}
+    user_id = data.get("user_id")
+    amount = data.get("amount")
+    if user_id is None or amount is None:
+        return jsonify({"error": "user_id and amount required"}), 400
+    try:
+        amount = float(amount)
+    except (TypeError, ValueError):
+        return jsonify({"error": "amount must be a number"}), 400
+    if amount <= 0:
+        return jsonify({"error": "amount must be positive"}), 400
+    user = db.get_user_by_id(user_id)
+    if not user:
+        return jsonify({"error": "user not found"}), 404
+    vudy_balance = user.get("vudy_balance", 0)
+    if vudy_balance < amount:
+        return jsonify({"error": "insufficient Vudy balance", "vudy_balance": vudy_balance}), 400
+    if VUDY_API_URL:
+        ok, result = _vudy_request("POST", "/withdraw", {"user_id": user_id, "amount": amount})
+        if not ok:
+            return jsonify({"error": "Vudy withdraw failed", "detail": result}), 502
+    user["vudy_balance"] = vudy_balance - amount
+    user["balance"] = user.get("balance", 0) + amount
+    db.save_user(user)
+    return jsonify({"ok": True, "message": "withdraw from Vudy", "user": user})
+
+
 if __name__ == "__main__":
     db._load()  # crea data.json si no existe
     app.run(host="0.0.0.0", port=5000, debug=True)  # debug=False si hay PermissionError en /dev/shm

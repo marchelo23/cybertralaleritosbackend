@@ -23,13 +23,11 @@ API en `http://127.0.0.1:5000`.
 
 1. Conecta el repo de GitHub a Render (Web Service).
 2. **Build Command:** `pip install -r requirements.txt`
-3. **Start Command:** `gunicorn wsgi:app`
+3. **Start Command:** `gunicorn app:app` (o `gunicorn wsgi:app`)
 4. En **Environment** añade las variables que necesites:
-   - `VUDY` – API key de Vudy (KYC).
+   - `VUDY` – API key de Vudy (KYC y depósito/retiro).
    - `VUDY_API_URL` – (opcional) URL base de la API Vudy.
    - `KYC_REQUIRED` – `1` para exigir KYC antes de solicitar préstamos.
-
-Render usa `wsgi:app` para evitar el conflicto entre el archivo `app.py` y el paquete `app/`.
 
 ## Endpoints
 
@@ -40,6 +38,8 @@ Render usa `wsgi:app` para evitar el conflicto entre el archivo `app.py` y el pa
 | POST | /request_loan | Body: `{ "user_id", "amount" }` |
 | POST | /pay_loan | Body: `{ "user_id", "loan_id" }` |
 | POST | /kyc/verify | Body: `{ "user_id", "dui" }` – verificación KYC con Vudy (DUI) |
+| POST | /vudy/deposit | Body: `{ "user_id", "amount" }` – guardar pisto en Vudy |
+| POST | /vudy/withdraw | Body: `{ "user_id", "amount" }` – jalar pisto desde Vudy |
 
 ## KYC (Vudy)
 

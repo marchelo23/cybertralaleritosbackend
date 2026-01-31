@@ -5,7 +5,8 @@
       "email": "investor@test.com",
       "type": "investor",
       "balance": 5000,
-      "rate": 3.6
+      "rate": 3.6,
+      "vudy_balance": 0
     },
     {
       "id": 2,
